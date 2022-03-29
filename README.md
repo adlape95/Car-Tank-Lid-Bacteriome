@@ -1013,4 +1013,55 @@ Just change the "abundance" and "prevalence" values to play with the data.
 
 # Genome Analysis (*Isoptericola*)
 
+Quality check
 
+```bash
+fastqc -o QC-in -t 2 *fastq
+```
+
+Cutadapt
+
+```bash
+cutadapt -j 8 -g primer5’ -a primer3’ -G primer5’ -A primer3’ -o forward_out -p reverse_out forward_in reverse_in 
+```
+
+Filter by quality
+
+```bash
+bbduk.sh in=forward.fq in2=reverse.fq out=forward_out.fq out2=reverse_out.fq qtrim=lr trimq=20 maq=20 minlen=75
+```
+
+Filter human reads
+
+```bash
+bowtie2 -p 8 -x Human_Genome_GRCh38_index  -1 forward_in -2 reverse_in --un-conc-gz seqsOut > alignment_out.sam
+```
+
+Quality check 2
+
+```bash
+fastqc -o QC-out -t 2 *fastq
+```
+
+Assembly
+
+```bash
+spades.py --isolate -1 forward.fastq -2 reverse.fastq -t 8 -o spades_out
+```
+
+Genome assembly stats
+
+```bash
+quast.py -o QUAST -t 8 spades_out/scaffolds.fasta 
+```
+
+Contamination and completeness check
+
+```bash
+mkdir checkm 
+cd checkm 
+mkdir ../final_assembly 
+cp ../spades_out/scaffolds.fasta ../final_assembly 
+conda activate checkm 
+checkm lineage_wf -t 8 -x fasta ../final_assembly/ ./
+```
