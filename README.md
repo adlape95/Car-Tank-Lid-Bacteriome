@@ -393,7 +393,7 @@ biom convert -i ./table-with-taxonomy.biom -o ./table-with-taxonomy-json2.biom -
 
 ### Data import
 
-Import the BIOM table
+Import the [BIOM table](https://github.com/adlape95/Car-Tank-Lid-Bacteriome/blob/main/misc/table-with-taxonomy-json2-MAIN.biom)
 
 ```r
 library(phyloseq)
@@ -403,7 +403,7 @@ physeqObjest <- import_biom("path/to/table-with-taxonomy-json2.biom", treefilena
 physeqObjest
 ```
 
-And then, import (and arrange) the metadata file.
+And then, import (and arrange) the [metadata file](https://github.com/adlape95/Car-Tank-Lid-Bacteriome/blob/main/misc/metadata-MAIN.csv).
 
 ```r
 # METADATA
@@ -806,7 +806,7 @@ p
 
 # R code - Metaanalysis
 
-Import the BIOM table
+Import the [BIOM table](https://github.com/adlape95/Car-Tank-Lid-Bacteriome/blob/main/misc/table-with-taxonomy-json2-METAANALYSIS.biom)
 
 ```r
 library(phyloseq)
@@ -816,7 +816,7 @@ physeqObjest <- import_biom("path/to/table-with-taxonomy-json2.biom",
 physeqObjest
 ```
 
-Import (and format) the metadata file
+Import (and format) the [metadata file](https://github.com/adlape95/Car-Tank-Lid-Bacteriome/blob/main/misc/metadata-METAANALYSIS.csv)
 
 ```r
 mapfile = read.csv("./metadata.csv", header = TRUE, sep=",")
