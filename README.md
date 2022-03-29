@@ -386,6 +386,10 @@ biom convert -i ./table-with-taxonomy.biom -o ./table-with-taxonomy-json2.biom -
 ```
 
 # R code - Main Analysis
+
+
+**IMPORTANT**: I've used the [phyloseq_to_df](https://rdrr.io/github/vmikk/metagMisc/man/phyloseq_to_df.html) function by vmikk
+
 ### Data import
 
 Import the BIOM table
@@ -833,7 +837,7 @@ sample_sums(physeq_R6_rel)
 physeq_R6_rel
 ```
 
-# Alfa diversity
+### Alfa diversity
 
 Rarefy to the 2nd sample with less sequences (32,070).
 
@@ -856,6 +860,12 @@ p
 ```
 
 **Heatmap. Top 20 Phyla**
+
+```r
+physeq_R2 <- tax_glom(physeq_R6, taxrank = rank_names(physeq_R6)[2], NArm = FALSE)
+physeq_R2_rel  = transform_sample_counts(physeq_R2, function(x) x / sum(x)*100)
+physeq_R2
+```
 
 ```r
 library(ampvis2)
@@ -931,6 +941,76 @@ p = amp_heatmap(
 p
 ```
 
+### Beta diversity
 
-**IMPORTANT**: I've used the [phyloseq_to_df](https://rdrr.io/github/vmikk/metagMisc/man/phyloseq_to_df.html) function by vmikk
+PCoA using Bray-Curtis dissimilarities at the genus level.
+
+```r
+library(ggplot2)
+library(RColorBrewer)
+# Calculate distance matrix
+brayDist <- phyloseq::distance(physeq_R6_rel, method="bray")
+# Calculate ordination
+iMDS  <- ordinate(physeq_R6_rel, distance=brayDist, method = "PCoA")
+## Make plot
+# Create plot, store as temp variable, p
+p <- plot_ordination(physeq_R6_rel, iMDS, color ="StudyID") + theme_light()
+p = p +  scale_color_brewer(palette = "Set3")
+p
+```
+
+### Core microbiome (Genus level)
+
+First remove the samples thar are not contaminated with petrol-derived substances.
+
+```r
+physeq.core = subset_samples(physeq_R6_rel, StudyID != "Tanner.etal.2020")
+physeq.core = subset_samples(physeq.core, StudyID != "PRJNA525339")
+physeq.core = subset_samples(physeq.core, SampleName != "SRR5457302")
+physeq.core = subset_samples(physeq.core, SampleName != "SRR5457301")
+physeq.core = subset_samples(physeq.core, StudyID != "PRJNA577076")
+
+physeq.core = subset_samples(physeq.core, SampleName != "SRR15809786")
+physeq.core = subset_samples(physeq.core, SampleName != "SRR15809785")
+physeq.core = subset_samples(physeq.core, SampleName != "SRR15809784")
+physeq.core = subset_samples(physeq.core, SampleName != "SRR15809796")
+physeq.core = subset_samples(physeq.core, SampleName != "SRR15809795")
+physeq.core = subset_samples(physeq.core, SampleName != "SRR15809794")
+physeq.core = subset_samples(physeq.core, SampleName != "SRR15809773")
+physeq.core = subset_samples(physeq.core, SampleName != "SRR15809772")
+physeq.core = subset_samples(physeq.core, SampleName != "SRR15809771")
+physeq.core = subset_samples(physeq.core, SampleName != "SRR15809731")
+physeq.core = subset_samples(physeq.core, SampleName != "SRR15809730")
+physeq.core = subset_samples(physeq.core, SampleName != "SRR15809729")
+physeq.core = subset_samples(physeq.core, SampleName != "SRR15809777")
+physeq.core = subset_samples(physeq.core, SampleName != "SRR15809766")
+physeq.core = subset_samples(physeq.core, SampleName != "SRR15809755")
+```
+
+Then calculate the core microbiome
+
+Abundance >0.1%
+Prevalence >= 90%
+
+```r
+library(microbiome)
+# SELECT CORE TAXA AND CREATE A PHYLOSEQ OBJECT
+pseq.core <- core(physeq.core, detection = 0.1, prevalence = .89)
+# get the taxonomy data
+tax.mat <- tax_table(pseq.core)
+tax.df <- as.data.frame(tax.mat[,c(1:6)])
+# Creat a string
+tax.string = paste(tax.df$Rank1, tax.df$Rank2, tax.df$Rank3, tax.df$Rank4, tax.df$Rank5, tax.df$Rank6, sep = ";")
+```
+
+And save the results into a file
+
+```{r}
+write.table(tax.string, "./Core-Ab01-Prev90.txt", sep = ",", dec = ".", row.names = FALSE, col.names = FALSE)
+```
+
+Just change the "abundance" and "prevalence" values to play with the data.
+
+# Genome Analysis (*Isoptericola*)
+
 
